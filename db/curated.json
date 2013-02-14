@@ -1,0 +1,23 @@
+{
+    "official": [
+        "automaton-chmod",
+        "automaton-cp",
+        "automaton-find-task",
+        "automaton-init",
+        "automaton-mkdir",
+        "automaton-mv",
+        "automaton-rm",
+        "automaton-run",
+        "automaton-scaffolding-append",
+        "automaton-scaffolding-close",
+        "automaton-scaffolding-file-rename",
+        "automaton-scaffolding-replace",
+        "automaton-symlink"
+    ],
+    "recommended": [
+
+    ],
+    "blacklist": [
+    
+    ]
+}

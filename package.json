@@ -1,0 +1,21 @@
+{
+  "name": "automaton-registry",
+  "version": "0.0.0",
+  "description": "Module that manages the automaton registry",
+  "main": "autofile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/IU-Automaton/automaton-registry.git"
+  },
+  "keywords": [
+    "automaton"
+  ],
+  "author": "Indigo United",
+  "license": "MIT",
+  "dependencies": {
+    "async": "~0.2.5"
+  }
+}
