@@ -157,7 +157,7 @@ var task = {
 
                 ctx.log.debugln('Going to process', packages.length, 'requests');
 
-                async.parallelLimit(batch, 50, function (err, result) {
+                async.parallelLimit(batch, 500, function (err, result) {
                     if (err) {
                         return next(new Error('Error fetching dependedUpon: ' + err));
                     }
