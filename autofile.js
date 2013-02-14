@@ -176,7 +176,7 @@ var task = {
 
 
                 var registry          = require(opt.curatedFile);
-                registry.timestamp    = (new Date()).getTime();
+                registry.timestamp    = (new Date()).toString();
                 registry.dependedUpon = opt.dependedUpon;
 
 
@@ -189,6 +189,34 @@ var task = {
 
                     next();
                 });
+            }
+        },
+        {
+            task: 'run',
+            description: 'Add new registry file',
+            options: {
+                cmd: 'git add ./db/registry.json'
+            }
+        },
+        {
+            task: 'run',
+            description: 'Commit new registry file',
+            options: {
+                cmd: 'git commit -m "Update registry - ' + (new Date()).toString() + '"'
+            }
+        },
+        {
+            task: 'run',
+            description: 'Pull changes from Github',
+            options: {
+                cmd: 'git pull origin master'
+            }
+        },
+        {
+            task: 'run',
+            description: 'Push changes into Github',
+            options: {
+                cmd: 'git push origin master'
             }
         }
     ]
