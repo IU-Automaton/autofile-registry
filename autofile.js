@@ -62,7 +62,7 @@ var task = {
                         });
 
                         res.on('end', function () {
-                            ctx.log.debugln('Response ready');
+                            ctx.log.successln('Fetched packages for keyword', keyword);
                             data = JSON.parse(data);
 
                             callback(null, data);
@@ -107,6 +107,9 @@ var task = {
             decription: 'Fetch individual task info from NPM registry',
 
             task: function (opt, ctx, next) {
+                var total   = opt.packages.length,
+                    fetched = 0;
+
                 var dependedUpon = function (name, callback) {
 
                     // https://registry.npmjs.org/-/_view/dependedUpon?startkey=[%22optimist%22]&endkey=[%22optimist%22,%20{}]&group_level=3
@@ -125,7 +128,10 @@ var task = {
                         });
 
                         res.on('end', function () {
-                            ctx.log.debugln(name, 'ready!');
+                            ++fetched;
+
+                            ctx.log.successln('(', fetched, '/', total, ')', 'Fetched depend info for task', name);
+
 
                             data = JSON.parse(data);
 
@@ -142,8 +148,8 @@ var task = {
                 var batch = {};
                 var packages  = opt.packages;
                 // TODO: remove hack below
-                //for (var i = packages.length - 1; i >= 0; i--) {
-                for (var i = 10; i >= 0; i--) {
+                for (var i = packages.length - 1; i >= 0; i--) {
+                //for (var i = 10; i >= 0; i--) {
                     var name = packages[i];
 
                     batch[name] = dependedUpon.bind(this, name);
@@ -165,7 +171,7 @@ var task = {
         },
         {
             description: 'Save aggregate file',
-            
+
             task: function (opt, ctx, next) {
 
 
