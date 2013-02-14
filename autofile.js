@@ -31,10 +31,12 @@ var task = {
         }
     },
 
-    // filter: function (opt, ctx, next) {
-    //     // do any validation/sanitization you need here
-    //     next();
-    // },
+    filter: function (opt, ctx, next) {
+        opt.curatedFile  = __dirname + '/db/curated.json',
+        opt.registryFile = __dirname + '/db/registry.json';
+
+        next();
+    },
 
     tasks: [
         {
@@ -151,7 +153,7 @@ var task = {
 
                 async.parallelLimit(batch, 500, function (err, result) {
                     if (err) {
-                        next(new Error('Error fetching dependedUpon: ' + err));
+                        return next(new Error('Error fetching dependedUpon: ' + err));
                     }
 
                     opt.dependedUpon = result;
@@ -163,16 +165,14 @@ var task = {
         },
         {
             description: 'Save aggregate file',
-
-            options: {
-                curatedFile: __dirname + '/db/curated.json',
-                registryFile: __dirname + '/db/registry.json'
-            },
-
+            
             task: function (opt, ctx, next) {
+
+
                 var registry          = require(opt.curatedFile);
                 registry.timestamp    = (new Date()).getTime();
                 registry.dependedUpon = opt.dependedUpon;
+
 
                 fs.writeFile(opt.registryFile, JSON.stringify(registry), function (err) {
                     if (err) {
