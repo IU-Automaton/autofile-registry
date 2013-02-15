@@ -1,6 +1,8 @@
 'use strict';
 
-var automaton = require('automaton').create();
+var automaton = require('automaton').create({
+    debug: false
+});
 
 var update = function () {
     automaton
