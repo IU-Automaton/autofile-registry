@@ -16,6 +16,7 @@
   "author": "Indigo United",
   "license": "MIT",
   "dependencies": {
-    "async": "~0.2.5"
+    "async": "~0.2.5",
+    "equals": "~0.1.1"
   }
 }

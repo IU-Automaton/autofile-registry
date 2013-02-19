@@ -2,9 +2,10 @@
 
 'use strict';
 
-var https = require('https');
-var async = require('async');
-var fs    = require('fs');
+var https  = require('https');
+var async  = require('async');
+var fs     = require('fs');
+var equals = require('equals');
 
 function getKeywordSearchPath(keyword) {
     return '/-/_view/byKeyword?startkey=["' + keyword + '"]&endkey=["' + keyword + '",{}]&group_level=3';
@@ -31,7 +32,7 @@ var task = {
         }
     },
 
-    filter: function (opt, ctx, next) {
+    setup: function (opt, ctx, next) {
         opt.curatedFile  = __dirname + '/db/curated.json',
         opt.registryFile = __dirname + '/db/registry.json';
 
@@ -112,8 +113,6 @@ var task = {
 
                 var dependedUpon = function (name, callback) {
 
-                    // https://registry.npmjs.org/-/_view/dependedUpon?startkey=[%22optimist%22]&endkey=[%22optimist%22,%20{}]&group_level=3
-
                     var registryUrl = 'https://registry.npmjs.org' + getDependedUponPath(name);
 
                     var req = https.get(registryUrl, function (res) {
@@ -170,17 +169,72 @@ var task = {
             }
         },
         {
-            description: 'Save aggregate file',
+            description: 'Check if anything in the registry changed',
 
             task: function (opt, ctx, next) {
+                fs.exists(opt.registryFile, function (exists) {
+                    if (!exists) {
+                        opt['update-registry'] = true;
 
+                        return next();
+                    }
 
-                var registry          = require(opt.curatedFile);
-                registry.timestamp    = (new Date()).toString();
-                registry.dependedUpon = opt.dependedUpon;
+                    var oldRegistry;
 
+                    // build new registry and load previous registry
+                    async.parallel([
+                        function (cb) {
+                            // read previous registry
+                            fs.readFile(opt.registryFile, function (err, data) {
+                                if (err) {
+                                    return cb(err);
+                                }
 
-                fs.writeFile(opt.registryFile, JSON.stringify(registry), function (err) {
+                                oldRegistry = JSON.parse(data);
+                                delete oldRegistry.timestamp;
+
+                                cb();
+                            });
+                        },
+                        function (cb) {
+                            // create new registry
+                            fs.readFile(opt.curatedFile, function (err, data) {
+                                if (err) {
+                                    return cb(err);
+                                }
+
+                                opt.newRegistry              = JSON.parse(data);
+                                opt.newRegistry.dependedUpon = opt.dependedUpon;
+
+                                cb();
+                            });
+
+                        }
+                    ], function (err) {
+                        if (err) {
+                            return next(err);
+                        }
+
+                        // if registry changed, mark it for update
+                        if (!equals.object(oldRegistry, opt.newRegistry)) {
+                            opt['update-registry'] = true;
+                        }
+
+                        ctx.log.infoln(opt['update-registry'] ? 'Changes detected, updating registry' : 'Registry is unchanged.');
+
+                        next();
+                    });
+                });
+            }
+        },
+        {
+            description: 'Save aggregate file',
+            on: '{{update-registry}}',
+
+            task: function (opt, ctx, next) {
+                opt.newRegistry.timestamp = (new Date()).toString();
+
+                fs.writeFile(opt.registryFile, JSON.stringify(opt.newRegistry), function (err) {
                     if (err) {
                         return next('Could not store registry file: ' + err);
                     }
@@ -193,6 +247,7 @@ var task = {
         },
         {
             task: 'run',
+            on: '{{update-registry}}',
             description: 'Add new registry file',
             options: {
                 cmd: 'git add ./db/registry.json'
@@ -200,6 +255,7 @@ var task = {
         },
         {
             task: 'run',
+            on: '{{update-registry}}',
             description: 'Commit new registry file',
             options: {
                 cmd: 'git commit -m "Update registry - ' + (new Date()).toString() + '"'
@@ -207,6 +263,7 @@ var task = {
         },
         {
             task: 'run',
+            on: '{{update-registry}}',
             description: 'Pull changes from Github',
             options: {
                 cmd: 'git pull origin master'
@@ -214,6 +271,7 @@ var task = {
         },
         {
             task: 'run',
+            on: '{{update-registry}}',
             description: 'Push changes into Github',
             options: {
                 cmd: 'git push origin master'

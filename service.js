@@ -11,7 +11,7 @@ var update = function () {
 };
 
 var scheduleUpdate = function () {
-    setTimeout(update, 5 * 60000);
+    process.nextTick(update);
 };
 
 update();
