@@ -1,5 +1,6 @@
 {
     "official": [
+        "automaton-test",
         "automaton-chmod",
         "automaton-cp",
         "automaton-find-task",
